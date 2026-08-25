@@ -150,14 +150,21 @@
     nav .links { display: none; }
     .hamburger { display: block; }
   }
+  @media (max-width: 640px) {
+    nav .links { display: none; }
+    .hamburger { display: block; min-width: 44px; min-height: 44px; }
+  }
 
   /* Hero */
   header {
     max-width: 1080px; margin: 0 auto; padding: 80px 24px 64px;
     display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
   }
-  @media (max-width: 860px) { header { grid-template-columns: 1fr; padding-top: 48px; } }
-  @media (max-width: 640px) { header { padding-top: 32px; padding-bottom: 40px; } }
+  @media (max-width: 860px) {
+    header { grid-template-columns: 1fr; padding-top: 48px; }
+    .code-window { box-shadow: 0 16px 40px rgba(0,0,0,.4); }
+  }
+  @media (max-width: 640px) { header { padding-top: 24px; padding-bottom: 32px; } }
 
   .badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -293,6 +300,7 @@
   /* Quickstart grid */
   .quickstart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
   @media (max-width: 860px) { .quickstart-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .quickstart-grid { gap: 16px; } }
 
   /* Package tabs */
   .pkg-tabs { display: flex; gap: 0; margin-bottom: 0; }
@@ -374,11 +382,59 @@
 
   /* Responsive helpers */
   @media (max-width: 640px) {
-    h1 { font-size: 32px; }
-    .sub { font-size: 16px; }
-    section { padding: 32px 16px; }
-    pre { font-size: 12px; padding: 16px; }
-    .card { padding: 20px; }
+    h1 { font-size: 28px; }
+    .sub { font-size: 15px; line-height: 1.5; }
+    section { padding: 28px 16px; }
+    pre { font-size: 11px; padding: 14px; }
+    .card { padding: 18px; }
+    .card h3 { font-size: 15px; }
+    .card p { font-size: 13px; }
+    h2 { font-size: 22px; }
+    .section-sub { font-size: 14px; }
+    .step p { font-size: 13px; }
+
+    .nav-wrap nav { padding: 12px 16px; }
+    .logo { font-size: 16px; gap: 8px; }
+    .logo .dot { width: 10px; height: 10px; }
+
+    header { padding: 24px 16px 32px; gap: 32px; }
+    .badge { font-size: 11px; padding: 4px 10px; margin-bottom: 16px; }
+    .cta-row { flex-direction: column; align-items: stretch; }
+    .cta-row .btn { justify-content: center; padding: 14px 24px; min-height: 48px; }
+    .install { width: 100%; padding: 10px 14px; }
+    .install code { font-size: 12px; }
+
+    .code-window { box-shadow: 0 8px 24px rgba(0,0,0,.35); border-radius: 12px; }
+    .code-window .bar { padding: 10px 12px; }
+    .code-window .bar .copy-btn { font-size: 11px; padding: 3px 8px; }
+
+    .quickstart-grid { gap: 16px; }
+    .pkg-tab { padding: 8px 12px; font-size: 12px; }
+    .pkg-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    .error-table th, .error-table td { padding: 10px 12px; font-size: 12px; }
+    .error-table td:first-child { font-size: 11px; }
+
+    .warn { padding: 12px 14px; font-size: 13px; gap: 10px; }
+
+    .flow { gap: 0; }
+    .step { gap: 12px; padding: 14px 0; }
+    .step::before { font-size: 13px; min-width: 22px; }
+
+    footer .inner { padding: 24px 16px; font-size: 12px; flex-direction: column; text-align: center; gap: 8px; }
+
+    .mobile-menu a { font-size: 18px; }
+    .mobile-menu { gap: 24px; }
+
+    .toast { font-size: 12px; padding: 8px 16px; bottom: 24px; }
+  }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 24px; }
+    .sub { font-size: 14px; }
+    .btn { padding: 12px 16px; font-size: 14px; }
+    .code-window .bar .copy-btn { display: none; }
+    .install .hint { display: none; }
   }
 </style>
 </head>
