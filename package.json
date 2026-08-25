@@ -18,6 +18,10 @@
       }
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taiatiniyara/mpaisa-js.git"
+  },
   "files": [
     "dist",
     "README.md",
