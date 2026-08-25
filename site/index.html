@@ -5,6 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>mpaisa-js — Accept M-PAiSA Payments in TypeScript</title>
 <meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, edge runtimes, and React/React Native. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<meta name="keywords" content="mpaisa, m-paisa, vodafone fiji, mobile money, payments sdk, typescript sdk, ipg, payment gateway, nodejs, react native" />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://taiatiniyara.github.io/mpaisa-js/" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://taiatiniyara.github.io/mpaisa-js/" />
+<meta property="og:title" content="mpaisa-js — Accept M-PAiSA Payments in TypeScript" />
+<meta property="og:description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, edge runtimes, and React/React Native. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<meta property="og:site_name" content="mpaisa-js" />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="mpaisa-js — Accept M-PAiSA Payments in TypeScript" />
+<meta name="twitter:description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, edge runtimes, and React/React Native. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<meta name="twitter:site" content="@taiatiniyara" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "mpaisa-js",
+  "description": "TypeScript SDK for the M-PAiSA Payments Gateway (Vodafone Fiji). Initiate wallet payments, verify redirect authenticity, and confirm transaction status.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Cross-platform",
+  "url": "https://github.com/taiatiniyara/mpaisa-js",
+  "downloadUrl": "https://www.npmjs.com/package/mpaisa-js",
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "softwareHelp": {
+    "@type": "WebPage",
+    "url": "https://taiatiniyara.github.io/mpaisa-js/"
+  }
+}
+</script>
+
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
 <style>
   :root {
@@ -343,7 +385,7 @@
 <body>
 
 <div class="nav-wrap">
-  <nav>
+  <nav aria-label="Main navigation">
     <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
     <div class="links">
       <a href="#quickstart">Quickstart</a>
@@ -359,7 +401,7 @@
   </nav>
 </div>
 
-<div class="mobile-menu" id="mobile-menu">
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Mobile navigation">
   <a href="#quickstart" onclick="closeMobile()">Quickstart</a>
   <a href="#client" onclick="closeMobile()">Client</a>
   <a href="#features" onclick="closeMobile()">Features</a>
@@ -368,6 +410,7 @@
   <a href="https://github.com/taiatiniyara/mpaisa-js" onclick="closeMobile()">GitHub</a>
 </div>
 
+<main>
 <header class="reveal">
   <div>
     <div class="badge"><span class="pulse"></span> M-PAiSA IPG API v1.3</div>
@@ -419,8 +462,8 @@
   </div>
 </header>
 
-<section id="quickstart" class="reveal">
-  <h2>Quickstart</h2>
+<section id="quickstart" class="reveal" aria-labelledby="quickstart-heading">
+  <h2 id="quickstart-heading">Quickstart</h2>
   <p class="section-sub">Install, configure, and process your first payment in three steps.</p>
   <div class="quickstart-grid">
     <div>
@@ -472,8 +515,8 @@
   </div>
 </section>
 
-<section id="client" class="reveal">
-  <h2>Client package <span style="font-weight: 400; color: var(--muted); font-size: 18px;">React / React Native</span></h2>
+<section id="client" class="reveal" aria-labelledby="client-heading">
+  <h2 id="client-heading">Client package <span style="font-weight: 400; color: var(--muted); font-size: 18px;">React / React Native</span></h2>
   <p class="section-sub">Parse redirects and display payment status in the browser. Secrets stay server-side — this is the browser-safe subset.</p>
   <div class="quickstart-grid">
     <div>
@@ -523,8 +566,8 @@
   </div>
 </section>
 
-<section id="features" class="reveal">
-  <h2>Why mpaisa-js</h2>
+<section id="features" class="reveal" aria-labelledby="features-heading">
+  <h2 id="features-heading">Why mpaisa-js</h2>
   <p class="section-sub">Built for the safe path. Every default pushes you toward the secure integration.</p>
   <div class="grid">
     <div class="card"><span class="icon">🔐</span><h3>Tamper-proof redirects</h3><p>tokenv2 hashes are recomputed locally with timing-safe comparison. Verification failures throw — you can't accidentally ignore them.</p></div>
@@ -536,8 +579,8 @@
   </div>
 </section>
 
-<section id="flow" class="reveal">
-  <h2>How it works</h2>
+<section id="flow" class="reveal" aria-labelledby="flow-heading">
+  <h2 id="flow-heading">How it works</h2>
   <p class="section-sub">Four steps between your server, the customer, and the M-PAiSA gateway.</p>
   <div class="flow">
     <div class="step"><div><b>Handshake</b><p>Your server exchanges credentials for a Request ID and auth digest. The SDK verifies the digest locally before anything moves — proving the gateway response hasn't been tampered with.</p></div></div>
@@ -547,7 +590,7 @@
   </div>
 </section>
 
-<section class="reveal">
+<section class="reveal" aria-label="Security note">
   <div class="warn">
     <span class="warn-icon">⚠️</span>
     <div>
@@ -558,8 +601,8 @@
   </div>
 </section>
 
-<section id="serverless" class="reveal">
-  <h2>Serverless &amp; edge deployments</h2>
+<section id="serverless" class="reveal" aria-labelledby="serverless-heading">
+  <h2 id="serverless-heading">Serverless &amp; edge deployments</h2>
   <p class="section-sub">Tokens are cached per instance. For serverless, plug in an external store so tokens survive cold starts.</p>
   <div class="code-window">
     <div class="bar">
@@ -586,8 +629,8 @@
   </p>
 </section>
 
-<section id="errors" class="reveal">
-  <h2>Error handling</h2>
+<section id="errors" class="reveal" aria-labelledby="errors-heading">
+  <h2 id="errors-heading">Error handling</h2>
   <p class="section-sub">Every error extends MpaisaError. Secrets are auto-redacted from messages and details.</p>
   <div class="error-table-wrap">
     <table class="error-table">
@@ -604,8 +647,8 @@
   </div>
 </section>
 
-<section id="polling" class="reveal">
-  <h2>Handling PENDING</h2>
+<section id="polling" class="reveal" aria-labelledby="polling-heading">
+  <h2 id="polling-heading">Handling PENDING</h2>
   <p class="section-sub">If the customer's browser closed mid-redirect, no callback arrives. Poll until you get a definitive answer.</p>
   <div class="code-window">
     <div class="bar">
@@ -628,7 +671,9 @@
   </div>
 </section>
 
-<footer>
+</main>
+
+<footer aria-label="Site footer">
   <div class="inner">
     <span>mpaisa-js &mdash; community SDK for the M-PAiSA Payments Gateway</span>
     <span>
