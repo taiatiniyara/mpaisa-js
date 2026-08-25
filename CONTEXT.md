@@ -36,3 +36,6 @@ Verifying the Redirect Token and then fetching authoritative status via the stat
 
 **Payments Page**:
 The gateway-hosted web page where the customer enters M-PAiSA wallet credentials and completes 2FA. The merchant redirects the customer there; it is never embedded or proxied.
+
+**Client Package**:
+The browser-safe subset of mpaisa-js, imported from `"mpaisa-js/client"`. Exports `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome` — all pure functions with no secrets. Runs in React, React Native, or any browser context. The merchant frontend uses it for preliminary redirect interpretation; authoritative Confirmation remains server-side. _Avoid_: client SDK, frontend SDK

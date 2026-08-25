@@ -81,6 +81,28 @@ app.get("/mpaisa/callback", async (req, res) => {
 
 A failed hash check throws `TokenMismatchError` — it does not return a result. Treat it as a security incident (see [ADR-0002](docs/adr)).
 
+### Client package (React / React Native)
+
+The full SDK requires `clientSecret` and makes server calls — it cannot run in the browser. For merchant frontends, import from `"mpaisa-js/client"` instead:
+
+```typescript
+import { parseRedirect, ResponseCode, redirectOutcome } from "mpaisa-js/client";
+
+// On your callback route after the customer returns from the Payments Page
+const parsed = parseRedirect(window.location.search);
+const outcome = redirectOutcome(parsed.rCode, parsed);
+
+if (outcome.status === "success") {
+  // Show "Payment successful" — but don't fulfil the order yet
+} else if (outcome.status === "cancelled") {
+  // Show "Payment cancelled"
+}
+```
+
+The client package exports only pure, secret-free functions: `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome`. It runs in any browser or React Native environment.
+
+**Important:** the client provides a preliminary status from the redirect URL. Authoritative confirmation must still happen server-side via `confirmRedirect()` — the redirect alone can be replayed, stale, or truncated. See the two-step fulfillment pattern above.
+
 ### Handling the PENDING limbo
 
 If the customer's browser closed mid-redirect, no callback ever arrives. Poll the status API until a terminal response code or your deadline:

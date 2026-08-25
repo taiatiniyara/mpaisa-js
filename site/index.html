@@ -4,22 +4,28 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>mpaisa-js — Accept M-PAiSA Payments in TypeScript</title>
-<meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, and edge runtimes. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, edge runtimes, and React/React Native. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
 <style>
   :root {
     --bg: #0b0f14;
     --surface: #111820;
+    --surface-hover: #161f2b;
     --border: #1e2a38;
     --text: #e6edf3;
     --muted: #8b98a5;
     --accent: #e60000;
     --accent-hover: #ff1a1a;
+    --accent-glow: rgba(230, 0, 0, 0.15);
     --green: #2ea043;
     --code-bg: #0d1117;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --transition: 0.2s ease;
   }
+  html { scroll-behavior: smooth; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: var(--bg);
@@ -27,12 +33,27 @@
     font-family: var(--sans);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   a { color: inherit; }
 
+  /* Focus styles for accessibility */
+  a:focus-visible, button:focus-visible, .pkg-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Nav */
+  .nav-wrap {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11, 15, 20, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
   nav {
     display: flex; align-items: center; justify-content: space-between;
-    max-width: 1080px; margin: 0 auto; padding: 20px 24px;
+    max-width: 1080px; margin: 0 auto; padding: 16px 24px;
   }
   .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
   .logo .dot {
@@ -40,28 +61,77 @@
     background: var(--accent); box-shadow: 0 0 12px var(--accent);
   }
   nav .links a {
-    color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 24px;
+    color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 28px;
+    transition: color var(--transition);
+    position: relative;
   }
-  nav .links a:hover { color: var(--text); }
+  nav .links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 2px; background: var(--accent); border-radius: 1px;
+    transform: scaleX(0); transition: transform var(--transition);
+  }
+  nav .links a:hover, nav .links a.active { color: var(--text); }
+  nav .links a:hover::after, nav .links a.active::after { transform: scaleX(1); }
 
+  /* Hamburger */
+  .hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    width: 32px; height: 32px; position: relative; z-index: 110;
+  }
+  .hamburger span {
+    display: block; width: 20px; height: 2px; background: var(--text);
+    border-radius: 1px; position: absolute; left: 6px;
+    transition: all 0.3s ease;
+  }
+  .hamburger span:nth-child(1) { top: 9px; }
+  .hamburger span:nth-child(2) { top: 15px; }
+  .hamburger span:nth-child(3) { top: 21px; }
+  .hamburger.open span:nth-child(1) { top: 15px; transform: rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { top: 15px; transform: rotate(-45deg); }
+
+  .mobile-menu {
+    display: none; position: fixed; inset: 0; z-index: 105;
+    background: rgba(11, 15, 20, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    color: var(--text); font-size: 20px; font-weight: 500; text-decoration: none;
+    transition: color var(--transition);
+  }
+  .mobile-menu a:hover { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    nav .links { display: none; }
+    .hamburger { display: block; }
+  }
+
+  /* Hero */
   header {
-    max-width: 1080px; margin: 0 auto; padding: 88px 24px 64px;
+    max-width: 1080px; margin: 0 auto; padding: 80px 24px 64px;
     display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
   }
-  @media (max-width: 860px) { header { grid-template-columns: 1fr; padding-top: 56px; } }
+  @media (max-width: 860px) { header { grid-template-columns: 1fr; padding-top: 48px; } }
+  @media (max-width: 640px) { header { padding-top: 32px; padding-bottom: 40px; } }
 
   .badge {
     display: inline-flex; align-items: center; gap: 8px;
     border: 1px solid var(--border); background: var(--surface);
     color: var(--muted); font-size: 13px;
     padding: 6px 14px; border-radius: 999px; margin-bottom: 24px;
+    transition: border-color var(--transition);
   }
+  .badge:hover { border-color: var(--muted); }
   .badge .pulse {
     width: 8px; height: 8px; border-radius: 50%; background: var(--green);
     animation: pulse 2s infinite;
   }
   @keyframes pulse {
-    0%, 100% { opacity: 1; } 50% { opacity: .35; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46, 160, 67, 0.4); }
+    50% { opacity: .35; box-shadow: 0 0 0 6px rgba(46, 160, 67, 0); }
   }
   h1 {
     font-size: clamp(36px, 6vw, 56px); line-height: 1.08;
@@ -73,94 +143,182 @@
   .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 12px 22px; border-radius: 10px; font-size: 15px; font-weight: 600;
-    text-decoration: none; transition: all .15s ease;
+    padding: 12px 24px; border-radius: 10px; font-size: 15px; font-weight: 600;
+    text-decoration: none; transition: all var(--transition);
   }
   .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .btn-primary:hover {
+    background: var(--accent-hover); transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(230, 0, 0, 0.3);
+  }
   .btn-ghost { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
-  .btn-ghost:hover { border-color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--muted); background: var(--surface-hover); }
 
   .install {
     margin-top: 28px; display: flex; align-items: center; gap: 12px;
     background: var(--code-bg); border: 1px solid var(--border);
     border-radius: 10px; padding: 12px 16px; width: fit-content;
-    cursor: pointer;
+    cursor: pointer; transition: border-color var(--transition);
   }
+  .install:hover { border-color: var(--muted); }
   .install code { font-family: var(--mono); font-size: 14px; color: #79c0ff; }
-  .install .hint { color: var(--muted); font-size: 12px; }
+  .install .hint { color: var(--muted); font-size: 12px; transition: color var(--transition); }
+  .install.copied .hint { color: var(--green); }
 
+  /* Code windows */
   .code-window {
     background: var(--code-bg); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
+    border-radius: var(--radius-lg); overflow: hidden;
     box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .code-window:hover {
+    border-color: #2a3a4e;
+    box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(230,0,0,0.05);
   }
   .code-window .bar {
-    display: flex; gap: 6px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 6px; padding: 12px 16px;
     border-bottom: 1px solid var(--border); background: var(--surface);
+    position: relative;
   }
   .code-window .bar span { width: 11px; height: 11px; border-radius: 50%; background: #2d3b4c; }
   .code-window .bar span:first-child { background: #f66; }
   .code-window .bar span:nth-child(2) { background: #fc2; }
   .code-window .bar span:nth-child(3) { background: #2c4; }
+  .code-window .bar .copy-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); font-size: 12px; padding: 4px 10px; cursor: pointer;
+    font-family: var(--mono); transition: all var(--transition);
+  }
+  .code-window .bar .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+  .code-window .bar .copy-btn.copied { color: var(--green); border-color: var(--green); }
   pre {
     font-family: var(--mono); font-size: 13px; line-height: 1.7;
-    padding: 20px; overflow-x: auto;
+    padding: 20px; overflow-x: auto; margin: 0;
   }
   .kw { color: #ff7b72; } .str { color: #a5d6ff; } .fn { color: #d2a8ff; }
   .cm { color: #8b949e; } .var { color: #79c0ff; } .num { color: #f2cc60; }
 
-  section { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
+  /* Sections */
+  section { max-width: 1080px; margin: 0 auto; padding: 48px 24px; }
   h2 { font-size: 28px; letter-spacing: -0.01em; margin-bottom: 8px; }
-  .section-sub { color: var(--muted); margin-bottom: 32px; }
+  .section-sub { color: var(--muted); margin-bottom: 32px; max-width: 60ch; }
 
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Feature grid */
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
   .card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 24px;
+    border-radius: var(--radius); padding: 24px;
+    transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  }
+  .card:hover {
+    border-color: #2a3a4e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
   }
   .card h3 { font-size: 16px; margin-bottom: 8px; }
-  .card p { color: var(--muted); font-size: 14px; }
+  .card p { color: var(--muted); font-size: 14px; line-height: 1.5; }
   .card .icon { font-size: 22px; margin-bottom: 12px; display: block; }
 
+  /* Flow steps */
   .flow { counter-reset: step; }
   .step {
     display: flex; gap: 20px; padding: 20px 0;
     border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
   }
   .step:last-child { border-bottom: none; }
+  .step:hover { background: rgba(255,255,255,0.02); border-radius: 8px; padding-left: 8px; margin-left: -8px; }
   .step::before {
     counter-increment: step; content: counter(step, decimal-leading-zero);
     font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 15px;
+    min-width: 28px;
   }
   .step b { display: block; margin-bottom: 2px; }
   .step p { color: var(--muted); font-size: 14px; }
 
+  /* Quickstart grid */
   .quickstart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
   @media (max-width: 860px) { .quickstart-grid { grid-template-columns: 1fr; } }
 
+  /* Package tabs */
   .pkg-tabs { display: flex; gap: 0; margin-bottom: 0; }
   .pkg-tab {
     padding: 10px 18px; font-size: 13px; font-weight: 600;
     background: var(--surface); border: 1px solid var(--border);
-    color: var(--muted); cursor: pointer; transition: all .15s;
+    color: var(--muted); cursor: pointer; transition: all var(--transition);
     font-family: var(--mono);
   }
   .pkg-tab:first-child { border-radius: 8px 0 0 0; }
   .pkg-tab:last-child { border-radius: 0 8px 0 0; }
   .pkg-tab:not(:last-child) { border-right: none; }
   .pkg-tab.active { background: var(--code-bg); color: var(--text); border-bottom-color: var(--code-bg); }
+  .pkg-tab:hover:not(.active) { color: var(--text); background: var(--surface-hover); }
 
-  .error-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  /* Error table */
+  .error-table-wrap {
+    overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius);
+    margin-top: 16px;
+  }
+  .error-table {
+    width: 100%; border-collapse: collapse;
+  }
   .error-table th, .error-table td {
-    text-align: left; padding: 10px 14px; font-size: 14px;
+    text-align: left; padding: 12px 16px; font-size: 14px;
     border-bottom: 1px solid var(--border);
   }
-  .error-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .error-table th {
+    color: var(--muted); font-weight: 600; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    background: var(--surface);
+  }
   .error-table td:first-child { font-family: var(--mono); color: #d2a8ff; font-size: 13px; }
   .error-table td:last-child { color: var(--muted); }
+  .error-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  .error-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .error-table tbody tr:last-child td { border-bottom: none; }
 
+  /* Warning callout */
+  .warn {
+    background: var(--surface); border-left: 3px solid var(--accent);
+    padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--muted); font-size: 14px; max-width: 72ch;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .warn .warn-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Env badges */
+  .env-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 600; font-family: var(--mono);
+  }
+  .env-staging { background: #1a3a2a; color: #3fb950; }
+  .env-live { background: #3a1a1a; color: #f85149; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface); border: 1px solid var(--green);
+    color: var(--green); padding: 10px 20px; border-radius: 8px;
+    font-size: 14px; font-family: var(--mono);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Footer */
   footer {
     border-top: 1px solid var(--border); margin-top: 40px;
   }
@@ -169,37 +327,48 @@
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
     color: var(--muted); font-size: 13px;
   }
-  footer a { color: var(--muted); text-decoration: none; }
+  footer a { color: var(--muted); text-decoration: none; transition: color var(--transition); }
   footer a:hover { color: var(--text); }
 
-  .warn {
-    background: var(--surface); border-left: 3px solid var(--accent);
-    padding: 14px 18px; border-radius: 0 10px 10px 0;
-    color: var(--muted); font-size: 14px; max-width: 72ch;
+  /* Responsive helpers */
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .sub { font-size: 16px; }
+    section { padding: 32px 16px; }
+    pre { font-size: 12px; padding: 16px; }
+    .card { padding: 20px; }
   }
-
-  .env-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 12px; font-weight: 600; font-family: var(--mono);
-  }
-  .env-staging { background: #1a3a2a; color: #3fb950; }
-  .env-live { background: #3a1a1a; color: #f85149; }
 </style>
 </head>
 <body>
 
-<nav>
-  <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
-  <div class="links">
-    <a href="#quickstart">Quickstart</a>
-    <a href="#features">Features</a>
-    <a href="#flow">How it works</a>
-    <a href="#errors">Errors</a>
-    <a href="https://github.com/taiatiniyara/mpaisa-js">GitHub</a>
-  </div>
-</nav>
+<div class="nav-wrap">
+  <nav>
+    <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
+    <div class="links">
+      <a href="#quickstart">Quickstart</a>
+      <a href="#client">Client</a>
+      <a href="#features">Features</a>
+      <a href="#flow">How it works</a>
+      <a href="#errors">Errors</a>
+      <a href="https://github.com/taiatiniyara/mpaisa-js">GitHub</a>
+    </div>
+    <button class="hamburger" onclick="toggleMobile()" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+</div>
 
-<header>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#quickstart" onclick="closeMobile()">Quickstart</a>
+  <a href="#client" onclick="closeMobile()">Client</a>
+  <a href="#features" onclick="closeMobile()">Features</a>
+  <a href="#flow" onclick="closeMobile()">How it works</a>
+  <a href="#errors" onclick="closeMobile()">Errors</a>
+  <a href="https://github.com/taiatiniyara/mpaisa-js" onclick="closeMobile()">GitHub</a>
+</div>
+
+<header class="reveal">
   <div>
     <div class="badge"><span class="pulse"></span> M-PAiSA IPG API v1.3</div>
     <h1>Accept <em>M-PAiSA</em> payments in TypeScript.</h1>
@@ -212,13 +381,16 @@
       <a class="btn btn-primary" href="#quickstart">Get started</a>
       <a class="btn btn-ghost" href="https://github.com/taiatiniyara/mpaisa-js">View on GitHub</a>
     </div>
-    <div class="install" onclick="navigator.clipboard.writeText('npm install mpaisa-js'); this.querySelector('.hint').textContent='copied ✓'">
+    <div class="install" onclick="copyInstall(this)">
       <code>npm install mpaisa-js</code>
       <span class="hint">click to copy</span>
     </div>
   </div>
   <div class="code-window">
-    <div class="bar"><span></span><span></span><span></span></div>
+    <div class="bar">
+      <span></span><span></span><span></span>
+      <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">copy</button>
+    </div>
 <pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
 
 <span class="kw">const</span> <span class="var">mpaisa</span> = <span class="kw">new</span> <span class="fn">Mpaisa</span>({
@@ -247,7 +419,7 @@
   </div>
 </header>
 
-<section id="quickstart">
+<section id="quickstart" class="reveal">
   <h2>Quickstart</h2>
   <p class="section-sub">Install, configure, and process your first payment in three steps.</p>
   <div class="quickstart-grid">
@@ -264,7 +436,10 @@
     </div>
     <div>
       <div class="code-window">
-        <div class="bar"><span></span><span></span><span></span></div>
+        <div class="bar">
+          <span></span><span></span><span></span>
+          <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">copy</button>
+        </div>
 <pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
 
 <span class="kw">const</span> <span class="var">mpaisa</span> = <span class="kw">new</span> <span class="fn">Mpaisa</span>({
@@ -297,7 +472,58 @@
   </div>
 </section>
 
-<section id="features">
+<section id="client" class="reveal">
+  <h2>Client package <span style="font-weight: 400; color: var(--muted); font-size: 18px;">React / React Native</span></h2>
+  <p class="section-sub">Parse redirects and display payment status in the browser. Secrets stay server-side — this is the browser-safe subset.</p>
+  <div class="quickstart-grid">
+    <div>
+      <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">
+        Import from <code style="color: #79c0ff;">"mpaisa-js/client"</code> for pure, secret-free functions that run anywhere a browser does. The full SDK handles the Handshake and Confirmation server-side; the client package handles redirect interpretation on the frontend.
+      </p>
+      <div class="code-window">
+        <div class="bar">
+          <span></span><span></span><span></span>
+          <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">copy</button>
+        </div>
+<pre><code><span class="kw">import</span> { <span class="var">parseRedirect</span>, <span class="var">ResponseCode</span>, <span class="var">redirectOutcome</span> }
+  <span class="kw">from</span> <span class="str">"mpaisa-js/client"</span>;
+
+<span class="cm">// On your callback route</span>
+<span class="kw">const</span> <span class="var">parsed</span> = <span class="fn">parseRedirect</span>(
+  window.location.search
+);
+<span class="kw">const</span> <span class="var">outcome</span> = <span class="fn">redirectOutcome</span>(
+  <span class="var">parsed</span>.rCode, <span class="var">parsed</span>
+);
+
+<span class="kw">if</span> (<span class="var">outcome</span>.status === <span class="str">"success"</span>) {
+  <span class="cm">// Show "Payment successful"</span>
+  <span class="cm">// Then call your backend for</span>
+  <span class="cm">// authoritative confirmation</span>
+}</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom: 16px;">
+        <span class="icon">&#x1f512;</span>
+        <h3>No secrets in the bundle</h3>
+        <p>Only pure parsing and constants — no clientSecret, no bearer tokens, no HTTP calls. Safe for any frontend.</p>
+      </div>
+      <div class="card" style="margin-bottom: 16px;">
+        <span class="icon">&#x26a1;</span>
+        <h3>Two-layer verification</h3>
+        <p>The client gives a preliminary status from the redirect. Your backend calls confirmRedirect() for the authoritative record before fulfilling any order.</p>
+      </div>
+      <div class="card">
+        <span class="icon">&#x1f4f1;</span>
+        <h3>Works everywhere</h3>
+        <p>React, React Native, Vue, Svelte, plain JS — any environment with URLSearchParams. Zero framework dependencies.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="reveal">
   <h2>Why mpaisa-js</h2>
   <p class="section-sub">Built for the safe path. Every default pushes you toward the secure integration.</p>
   <div class="grid">
@@ -310,7 +536,7 @@
   </div>
 </section>
 
-<section id="flow">
+<section id="flow" class="reveal">
   <h2>How it works</h2>
   <p class="section-sub">Four steps between your server, the customer, and the M-PAiSA gateway.</p>
   <div class="flow">
@@ -321,19 +547,25 @@
   </div>
 </section>
 
-<section>
+<section class="reveal">
   <div class="warn">
-    <strong>Security note:</strong> always verify the tokenv2 hash and confirm status server-side
-    before fulfilling orders. Unverified redirects are vulnerable to tampering. mpaisa-js makes
-    skipping these checks hard on purpose — you'll get a TokenMismatchError, not a silent pass.
+    <span class="warn-icon">⚠️</span>
+    <div>
+      <strong>Security note:</strong> always verify the tokenv2 hash and confirm status server-side
+      before fulfilling orders. Unverified redirects are vulnerable to tampering. mpaisa-js makes
+      skipping these checks hard on purpose — you'll get a TokenMismatchError, not a silent pass.
+    </div>
   </div>
 </section>
 
-<section id="serverless">
+<section id="serverless" class="reveal">
   <h2>Serverless &amp; edge deployments</h2>
   <p class="section-sub">Tokens are cached per instance. For serverless, plug in an external store so tokens survive cold starts.</p>
   <div class="code-window">
-    <div class="bar"><span></span><span></span><span></span></div>
+    <div class="bar">
+      <span></span><span></span><span></span>
+      <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">copy</button>
+    </div>
 <pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
 <span class="kw">import</span> Redis <span class="kw">from</span> <span class="str">"ioredis"</span>;
 
@@ -354,27 +586,32 @@
   </p>
 </section>
 
-<section id="errors">
+<section id="errors" class="reveal">
   <h2>Error handling</h2>
   <p class="section-sub">Every error extends MpaisaError. Secrets are auto-redacted from messages and details.</p>
-  <table class="error-table">
-    <thead><tr><th>Error</th><th>When it throws</th></tr></thead>
-    <tbody>
-      <tr><td>ValidationError</td><td>Bad input before any network call (e.g. malformed amount)</td></tr>
-      <tr><td>NetworkError</td><td>Fetch failed or timed out after retries</td></tr>
-      <tr><td>GatewayError</td><td>Gateway returned an unusable or error response</td></tr>
-      <tr><td>RateLimitError</td><td>HTTP 429 from the gateway (includes retryAfterSeconds)</td></tr>
-      <tr><td>TokenMismatchError</td><td>tokenv2 hash mismatch — treat as a security incident</td></tr>
-      <tr><td>PollTimeoutError</td><td>Transaction still PENDING after your deadline</td></tr>
-    </tbody>
-  </table>
+  <div class="error-table-wrap">
+    <table class="error-table">
+      <thead><tr><th>Error</th><th>When it throws</th></tr></thead>
+      <tbody>
+        <tr><td>ValidationError</td><td>Bad input before any network call (e.g. malformed amount)</td></tr>
+        <tr><td>NetworkError</td><td>Fetch failed or timed out after retries</td></tr>
+        <tr><td>GatewayError</td><td>Gateway returned an unusable or error response</td></tr>
+        <tr><td>RateLimitError</td><td>HTTP 429 from the gateway (includes retryAfterSeconds)</td></tr>
+        <tr><td>TokenMismatchError</td><td>tokenv2 hash mismatch — treat as a security incident</td></tr>
+        <tr><td>PollTimeoutError</td><td>Transaction still PENDING after your deadline</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
-<section id="polling">
+<section id="polling" class="reveal">
   <h2>Handling PENDING</h2>
   <p class="section-sub">If the customer's browser closed mid-redirect, no callback arrives. Poll until you get a definitive answer.</p>
   <div class="code-window">
-    <div class="bar"><span></span><span></span><span></span></div>
+    <div class="bar">
+      <span></span><span></span><span></span>
+      <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">copy</button>
+    </div>
 <pre><code><span class="kw">const</span> <span class="var">record</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">poll</span>(
   {
     rId: <span class="var">session</span>.requestID,
@@ -402,6 +639,8 @@
   </div>
 </footer>
 
+<div class="toast" id="toast">Copied to clipboard</div>
+
 <script>
 function switchPkg(el, pkg) {
   document.querySelectorAll('.pkg-tab').forEach(t => t.classList.remove('active'));
@@ -409,6 +648,72 @@ function switchPkg(el, pkg) {
   const cmds = { npm: 'npm install mpaisa-js', yarn: 'yarn add mpaisa-js', pnpm: 'pnpm add mpaisa-js' };
   document.getElementById('install-code').innerHTML = '<code>' + cmds[pkg] + '</code>';
 }
+
+function copyInstall(el) {
+  navigator.clipboard.writeText('npm install mpaisa-js');
+  el.classList.add('copied');
+  el.querySelector('.hint').textContent = 'copied ✓';
+  showToast();
+  setTimeout(function() { el.classList.remove('copied'); el.querySelector('.hint').textContent = 'click to copy'; }, 2000);
+}
+
+function copyCode(btn) {
+  var pre = btn.closest('.code-window').querySelector('pre');
+  var text = pre.textContent || pre.innerText;
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'copied ✓';
+  btn.classList.add('copied');
+  showToast();
+  setTimeout(function() { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+}
+
+function showToast() {
+  var t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 1800);
+}
+
+function toggleMobile() {
+  var menu = document.getElementById('mobile-menu');
+  var btn = document.querySelector('.hamburger');
+  menu.classList.toggle('open');
+  btn.classList.toggle('open');
+  document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+}
+
+function closeMobile() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.querySelector('.hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Scroll reveal
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+
+// Active nav link tracking
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('nav .links a');
+window.addEventListener('scroll', function() {
+  var scrollY = window.scrollY + 100;
+  sections.forEach(function(section) {
+    var top = section.offsetTop;
+    var height = section.offsetHeight;
+    var id = section.getAttribute('id');
+    if (scrollY >= top && scrollY < top + height) {
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + id) link.classList.add('active');
+      });
+    }
+  });
+});
 </script>
 
 </body>
