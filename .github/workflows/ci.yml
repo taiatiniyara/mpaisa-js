@@ -7,6 +7,28 @@ on:
     branches: [main]
 
 jobs:
+  changeset:
+    name: Changeset
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changeset file
+        run: |
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'no-release') }}" == "true" ]]; then
+            echo "no-release label found — skipping changeset check."
+            exit 0
+          fi
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD -- '.changeset/*.md' | grep -q .; then
+            echo "Changeset found."
+          else
+            echo "::error::No changeset found. Run 'npx changeset' to declare a release intent, or add the 'no-release' label to skip."
+            exit 1
+          fi
+
   ci:
     runs-on: ubuntu-latest
 
