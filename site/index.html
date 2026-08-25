@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>mpaisa-js — TypeScript SDK for the M-PAiSA Payments Gateway</title>
-<meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, and edge runtimes. Handshake, redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<title>mpaisa-js — Accept M-PAiSA Payments in TypeScript</title>
+<meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, and edge runtimes. Handshake, tamper-proof redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
 <style>
   :root {
@@ -137,6 +137,30 @@
   .step b { display: block; margin-bottom: 2px; }
   .step p { color: var(--muted); font-size: 14px; }
 
+  .quickstart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 860px) { .quickstart-grid { grid-template-columns: 1fr; } }
+
+  .pkg-tabs { display: flex; gap: 0; margin-bottom: 0; }
+  .pkg-tab {
+    padding: 10px 18px; font-size: 13px; font-weight: 600;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer; transition: all .15s;
+    font-family: var(--mono);
+  }
+  .pkg-tab:first-child { border-radius: 8px 0 0 0; }
+  .pkg-tab:last-child { border-radius: 0 8px 0 0; }
+  .pkg-tab:not(:last-child) { border-right: none; }
+  .pkg-tab.active { background: var(--code-bg); color: var(--text); border-bottom-color: var(--code-bg); }
+
+  .error-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .error-table th, .error-table td {
+    text-align: left; padding: 10px 14px; font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .error-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .error-table td:first-child { font-family: var(--mono); color: #d2a8ff; font-size: 13px; }
+  .error-table td:last-child { color: var(--muted); }
+
   footer {
     border-top: 1px solid var(--border); margin-top: 40px;
   }
@@ -153,6 +177,13 @@
     padding: 14px 18px; border-radius: 0 10px 10px 0;
     color: var(--muted); font-size: 14px; max-width: 72ch;
   }
+
+  .env-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 12px; font-weight: 600; font-family: var(--mono);
+  }
+  .env-staging { background: #1a3a2a; color: #3fb950; }
+  .env-live { background: #3a1a1a; color: #f85149; }
 </style>
 </head>
 <body>
@@ -160,24 +191,26 @@
 <nav>
   <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
   <div class="links">
+    <a href="#quickstart">Quickstart</a>
     <a href="#features">Features</a>
     <a href="#flow">How it works</a>
+    <a href="#errors">Errors</a>
     <a href="https://github.com/taiatiniyara/mpaisa-js">GitHub</a>
   </div>
 </nav>
 
 <header>
   <div>
-    <div class="badge"><span class="pulse"></span> Built for the M-PAiSA IPG API v1.3</div>
+    <div class="badge"><span class="pulse"></span> M-PAiSA IPG API v1.3</div>
     <h1>Accept <em>M-PAiSA</em> payments in TypeScript.</h1>
     <p class="sub">
-      The official-community SDK for Vodafone Fiji's M-PAiSA Payments Gateway.
-      Handshake, tamper-proof redirect verification, and transaction status —
-      in one zero-dependency package.
+      Start accepting mobile money payments in minutes. Handshake, tamper-proof
+      redirect verification, and transaction status — one zero-dependency package
+      for Node.js, Bun, Deno, and edge runtimes.
     </p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/taiatiniyara/mpaisa-js">Get started</a>
-      <a class="btn btn-ghost" href="#flow">See the flow</a>
+      <a class="btn btn-primary" href="#quickstart">Get started</a>
+      <a class="btn btn-ghost" href="https://github.com/taiatiniyara/mpaisa-js">View on GitHub</a>
     </div>
     <div class="install" onclick="navigator.clipboard.writeText('npm install mpaisa-js'); this.querySelector('.hint').textContent='copied ✓'">
       <code>npm install mpaisa-js</code>
@@ -194,66 +227,189 @@
   environment: <span class="str">"staging"</span>,
 });
 
-<span class="cm">// 1. Open a session</span>
+<span class="cm">// 1. Start a payment session</span>
 <span class="kw">const</span> <span class="var">session</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">handshake</span>({
-  merchantTid: <span class="str">"123456543VF"</span>,
+  merchantTid: <span class="str">"ORDER-123"</span>,
   amount: <span class="str">"10.50"</span>,
-  itemDetail: <span class="str">"iPhone 17"</span>,
-  returnUrl: <span class="str">"https://example.com/callback"</span>,
+  itemDetail: <span class="str">"1x Flat White"</span>,
+  returnUrl: <span class="str">"https://shop.example.com/callback"</span>,
 });
-<span class="var">session</span>.<span class="fn">verifyDigest</span>();
 
-<span class="cm">// 2. Redirect the customer</span>
+<span class="cm">// 2. Redirect the customer to pay</span>
 <span class="fn">redirect</span>(<span class="var">session</span>.checkoutUrl);
 
-<span class="cm">// 3. On return — verify, then confirm</span>
-<span class="kw">const</span> <span class="var">txn</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">confirmRedirect</span>(params);
-<span class="kw">if</span> (<span class="var">txn</span>.status === <span class="str">"SUCCESS"</span>) <span class="fn">fulfilOrder</span>();</code></pre>
+<span class="cm">// 3. On return — verify hash, then confirm status</span>
+<span class="kw">const</span> <span class="var">record</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">confirmRedirect</span>(
+  <span class="var">searchParams</span>,
+  { amount: <span class="str">"10.50"</span>, itemDetail: <span class="str">"1x Flat White"</span> },
+);
+<span class="kw">if</span> (<span class="var">record</span>.status === <span class="str">"success"</span>) <span class="fn">fulfilOrder</span>();</code></pre>
   </div>
 </header>
 
+<section id="quickstart">
+  <h2>Quickstart</h2>
+  <p class="section-sub">Install, configure, and process your first payment in three steps.</p>
+  <div class="quickstart-grid">
+    <div>
+      <div class="pkg-tabs">
+        <span class="pkg-tab active" onclick="switchPkg(this,'npm')">npm</span>
+        <span class="pkg-tab" onclick="switchPkg(this,'yarn')">yarn</span>
+        <span class="pkg-tab" onclick="switchPkg(this,'pnpm')">pnpm</span>
+      </div>
+      <div class="code-window" style="border-top-left-radius: 0;">
+        <pre id="install-code"><code>npm install mpaisa-js</code></pre>
+      </div>
+      <p style="color: var(--muted); font-size: 13px; margin-top: 12px;">Requires Node.js 20 or later.</p>
+    </div>
+    <div>
+      <div class="code-window">
+        <div class="bar"><span></span><span></span><span></span></div>
+<pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
+
+<span class="kw">const</span> <span class="var">mpaisa</span> = <span class="kw">new</span> <span class="fn">Mpaisa</span>({
+  clientId: <span class="str">"YOUR_CLIENT_ID"</span>,
+  clientSecret: <span class="str">"YOUR_CLIENT_SECRET"</span>,
+  environment: <span class="str">"staging"</span>, <span class="cm">// or "live"</span>
+});
+
+<span class="cm">// The full flow: Handshake → Redirect → Confirm</span>
+<span class="kw">const</span> <span class="var">session</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">handshake</span>({
+  merchantTid: <span class="str">"ORDER-001"</span>,
+  amount: <span class="str">"25.00"</span>,
+  itemDetail: <span class="str">"Premium subscription"</span>,
+  returnUrl: <span class="str">"https://yoursite.com/mpaisa/callback"</span>,
+});
+
+<span class="cm">// Redirect customer to session.checkoutUrl</span>
+<span class="cm">// Then on your callback URL:</span>
+<span class="kw">const</span> <span class="var">record</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">confirmRedirect</span>(
+  <span class="kw">new</span> <span class="fn">URL</span>(<span class="var">req</span>.url).searchParams,
+  { amount: <span class="str">"25.00"</span>, itemDetail: <span class="str">"Premium subscription"</span> },
+);
+
+<span class="kw">if</span> (<span class="var">record</span>.status === <span class="str">"success"</span>) {
+  <span class="cm">// Safe to fulfil the order</span>
+  <span class="fn">grantAccess</span>(<span class="var">record</span>.tID);
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="features">
-  <h2>Built safe by default</h2>
-  <p class="section-sub">Payments code fails quietly unless the SDK makes the safe path the easy path.</p>
+  <h2>Why mpaisa-js</h2>
+  <p class="section-sub">Built for the safe path. Every default pushes you toward the secure integration.</p>
   <div class="grid">
-    <div class="card"><span class="icon">🔐</span><h3>Tamper-proof redirects</h3><p>tokenv2 digests are recomputed locally with timing-safe comparison. Verification failures are impossible to ignore — the type system forces you to handle them.</p></div>
-    <div class="card"><span class="icon">🧾</span><h3>Ground-truth confirmation</h3><p>confirmRedirect() verifies the hash <em>and</em> re-checks authoritative status via the gateway before you fulfil an order. Never trust the redirect alone.</p></div>
-    <div class="card"><span class="icon">🪶</span><h3>Zero dependencies</h3><p>Pure fetch + WebCrypto. Runs on Node 18+, Bun, Deno, and Cloudflare Workers without polyfills or audit surface.</p></div>
-    <div class="card"><span class="icon">🔄</span><h3>Token lifecycle handled</h3><p>Bearer tokens are fetched lazily, cached, and refreshed ahead of expiry. Plug in an external cache for serverless cold starts.</p></div>
+    <div class="card"><span class="icon">🔐</span><h3>Tamper-proof redirects</h3><p>tokenv2 hashes are recomputed locally with timing-safe comparison. Verification failures throw — you can't accidentally ignore them.</p></div>
+    <div class="card"><span class="icon">🧾</span><h3>Two-step confirmation</h3><p>confirmRedirect() verifies the hash first, then fetches authoritative status from the gateway. Never fulfil an order from the redirect alone.</p></div>
+    <div class="card"><span class="icon">🪶</span><h3>Zero dependencies</h3><p>Pure fetch + WebCrypto. No polyfills, no audit surface. Runs on Node 20+, Bun, Deno, and Cloudflare Workers.</p></div>
+    <div class="card"><span class="icon">🔄</span><h3>Serverless-ready caching</h3><p>Bearer tokens are cached per instance. Plug in Redis, KV, or DynamoDB via a simple cache interface to survive cold starts.</p></div>
     <div class="card"><span class="icon">💸</span><h3>Exact money strings</h3><p>Amounts are decimal strings reused byte-for-byte across URLs and digests — no float formatting drift breaking hash verification.</p></div>
-    <div class="card"><span class="icon">🧭</span><h3>Typed end to end</h3><p>Every response code (100–155) mapped to typed errors. Dual ESM/CJS output with strict TypeScript declarations.</p></div>
+    <div class="card"><span class="icon">🧭</span><h3>Fully typed</h3><p>Every response code (100–155) mapped to typed errors. Dual ESM/CJS output with strict TypeScript declarations.</p></div>
   </div>
 </section>
 
 <section id="flow">
-  <h2>The payment flow</h2>
-  <p class="section-sub">Four calls between your server, the customer's browser, and the gateway.</p>
+  <h2>How it works</h2>
+  <p class="section-sub">Four steps between your server, the customer, and the M-PAiSA gateway.</p>
   <div class="flow">
-    <div class="step"><div><b>Handshake</b><p>Your server exchanges credentials for a bearer token, Request ID, and auth digest — verified locally before anything moves.</p></div></div>
-    <div class="step"><div><b>Redirect</b><p>The customer is sent to the gateway-hosted Payments Page and pays with their M-PAiSA wallet via SMS/OTP two-factor auth.</p></div></div>
-    <div class="step"><div><b>Redirect back</b><p>The gateway returns the customer with rCode, transaction details, and a tokenv2 hash. mpaisa-js recomputes and compares it before you act.</p></div></div>
-    <div class="step"><div><b>Confirm &amp; fulfil</b><p>confirmRedirect() pulls authoritative status from the requeststatus API. Only then do you fulfil the order.</p></div></div>
+    <div class="step"><div><b>Handshake</b><p>Your server exchanges credentials for a Request ID and auth digest. The SDK verifies the digest locally before anything moves — proving the gateway response hasn't been tampered with.</p></div></div>
+    <div class="step"><div><b>Redirect</b><p>The customer is sent to the gateway-hosted Payments Page, where they enter their M-PAiSA wallet credentials and complete SMS/OTP two-factor authentication.</p></div></div>
+    <div class="step"><div><b>Return</b><p>The gateway redirects the customer back with a tokenv2 hash. mpaisa-js recomputes it and compares with timing-safe equality — a mismatch throws a TokenMismatchError.</p></div></div>
+    <div class="step"><div><b>Confirm &amp; fulfil</b><p>confirmRedirect() chains hash verification with an authoritative status API call. Only when both pass do you fulfil the order.</p></div></div>
   </div>
 </section>
 
 <section>
   <div class="warn">
-    <strong>Integration note:</strong> always verify tokenv2 and confirm status server-side before
-    fulfilling orders. Unverified redirects are vulnerable to tampering — Vodafone accepts no
-    liability for unverified transactions. mpaisa-js makes skipping these checks hard on purpose.
+    <strong>Security note:</strong> always verify the tokenv2 hash and confirm status server-side
+    before fulfilling orders. Unverified redirects are vulnerable to tampering. mpaisa-js makes
+    skipping these checks hard on purpose — you'll get a TokenMismatchError, not a silent pass.
+  </div>
+</section>
+
+<section id="serverless">
+  <h2>Serverless &amp; edge deployments</h2>
+  <p class="section-sub">Tokens are cached per instance. For serverless, plug in an external store so tokens survive cold starts.</p>
+  <div class="code-window">
+    <div class="bar"><span></span><span></span><span></span></div>
+<pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
+<span class="kw">import</span> Redis <span class="kw">from</span> <span class="str">"ioredis"</span>;
+
+<span class="kw">const</span> <span class="var">redis</span> = <span class="kw">new</span> <span class="fn">Redis</span>(process.env.<span class="num">REDIS_URL</span>!);
+
+<span class="kw">const</span> <span class="var">mpaisa</span> = <span class="kw">new</span> <span class="fn">Mpaisa</span>({
+  clientId: process.env.<span class="num">MPAISA_CLIENT_ID</span>!,
+  clientSecret: process.env.<span class="num">MPAISA_CLIENT_SECRET</span>!,
+  tokenCache: {
+    <span class="fn">get</span>: (<span class="var">key</span>) =&gt; <span class="var">redis</span>.<span class="fn">get</span>(<span class="var">key</span>),
+    <span class="fn">set</span>: (<span class="var">key</span>, <span class="var">value</span>, <span class="var">ttlMs</span>) =&gt;
+      <span class="var">redis</span>.<span class="fn">set</span>(<span class="var">key</span>, <span class="var">value</span>, <span class="str">"PX"</span>, <span class="var">ttlMs</span>),
+  },
+});</code></pre>
+  </div>
+  <p style="color: var(--muted); font-size: 14px; margin-top: 12px;">
+    Any async key-value store works — Redis, Cloudflare KV, Durable Objects, DynamoDB, or your own.
+  </p>
+</section>
+
+<section id="errors">
+  <h2>Error handling</h2>
+  <p class="section-sub">Every error extends MpaisaError. Secrets are auto-redacted from messages and details.</p>
+  <table class="error-table">
+    <thead><tr><th>Error</th><th>When it throws</th></tr></thead>
+    <tbody>
+      <tr><td>ValidationError</td><td>Bad input before any network call (e.g. malformed amount)</td></tr>
+      <tr><td>NetworkError</td><td>Fetch failed or timed out after retries</td></tr>
+      <tr><td>GatewayError</td><td>Gateway returned an unusable or error response</td></tr>
+      <tr><td>RateLimitError</td><td>HTTP 429 from the gateway (includes retryAfterSeconds)</td></tr>
+      <tr><td>TokenMismatchError</td><td>tokenv2 hash mismatch — treat as a security incident</td></tr>
+      <tr><td>PollTimeoutError</td><td>Transaction still PENDING after your deadline</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="polling">
+  <h2>Handling PENDING</h2>
+  <p class="section-sub">If the customer's browser closed mid-redirect, no callback arrives. Poll until you get a definitive answer.</p>
+  <div class="code-window">
+    <div class="bar"><span></span><span></span><span></span></div>
+<pre><code><span class="kw">const</span> <span class="var">record</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">poll</span>(
+  {
+    rId: <span class="var">session</span>.requestID,
+    tId: <span class="str">"ORDER-123"</span>,
+    cId: process.env.<span class="num">MPAISA_CLIENT_ID</span>!,
+  },
+  {
+    timeoutMs: <span class="num">120_000</span>,  <span class="cm">// give up after 2 minutes</span>
+    intervalMs: <span class="num">2_000</span>,   <span class="cm">// poll every 2s (exponential backoff, capped at 30s)</span>
+  },
+);
+<span class="cm">// record.status is terminal: "success" | "cancelled" | "unknown"</span>
+<span class="cm">// Throws PollTimeoutError if still PENDING after timeoutMs</span></code></pre>
   </div>
 </section>
 
 <footer>
   <div class="inner">
-    <span>mpaisa-js — community SDK for the M-PAiSA Payments Gateway</span>
+    <span>mpaisa-js &mdash; community SDK for the M-PAiSA Payments Gateway</span>
     <span>
-      <a href="https://github.com/taiatiniyara/mpaisa-js">Source</a> ·
-      <a href="https://github.com/taiatiniyara/mpaisa-js/issues">Issues</a> ·
+      <a href="https://github.com/taiatiniyara/mpaisa-js">Source</a> &middot;
+      <a href="https://github.com/taiatiniyara/mpaisa-js/issues">Issues</a> &middot;
       <a href="https://www.vodafone.com.fj/m-paisa">M-PAiSA</a>
     </span>
   </div>
 </footer>
+
+<script>
+function switchPkg(el, pkg) {
+  document.querySelectorAll('.pkg-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const cmds = { npm: 'npm install mpaisa-js', yarn: 'yarn add mpaisa-js', pnpm: 'pnpm add mpaisa-js' };
+  document.getElementById('install-code').innerHTML = '<code>' + cmds[pkg] + '</code>';
+}
+</script>
 
 </body>
 </html>

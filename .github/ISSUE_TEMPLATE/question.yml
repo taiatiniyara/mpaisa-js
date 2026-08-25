@@ -1,0 +1,27 @@
+name: Question
+description: Ask a question about using mpaisa-js
+labels: ["question", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, please check:
+        - [README](https://github.com/taiatiniyara/mpaisa-js#readme)
+        - [Landing page](https://taiatiniyara.github.io/mpaisa-js)
+        - [Existing issues](https://github.com/taiatiniyara/mpaisa-js/issues)
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What do you need help with?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: What have you tried?
+      description: Any code, docs, or approaches you've already looked at.
+    validations:
+      required: false

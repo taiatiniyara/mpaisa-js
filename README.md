@@ -1,6 +1,9 @@
 # mpaisa-js
 
+[![npm version](https://img.shields.io/npm/v/mpaisa-js.svg)](https://www.npmjs.com/package/mpaisa-js)
 [![CI](https://github.com/taiatiniyara/mpaisa-js/actions/workflows/ci.yml/badge.svg)](https://github.com/taiatiniyara/mpaisa-js/actions/workflows/ci.yml)
+[![License](https://img.shields.io/npm/l/mpaisa-js.svg)](https://github.com/taiatiniyara/mpaisa-js/blob/main/LICENSE)
+[![npm downloads](https://img.shields.io/npm/dm/mpaisa-js.svg)](https://www.npmjs.com/package/mpaisa-js)
 
 TypeScript SDK for the M-PAiSA Payments Gateway (Vodafone Fiji): initiate wallet payments via the Handshake, verify redirect authenticity with `tokenv2`, and confirm transaction status against the authoritative status API.
 

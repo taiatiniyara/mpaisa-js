@@ -85,9 +85,9 @@ describe("Mpaisa.handshake()", () => {
     const session = await client.handshake(VALID_INPUT);
     expect(session).toBeInstanceOf(Session);
     expect(session.requestID).toBe("rID-abc");
-    expect(session.amount).toBe("10.50");
-    expect(session.merchantTid).toBe("order-1");
-    expect(session.authDigestV2.toUpperCase()).toBe(digest);
+    const url = new URL(session.checkoutUrl);
+    expect(url.searchParams.get("amt")).toBe("10.50");
+    expect(url.searchParams.get("tID")).toBe("order-1");
     expect(await session.verifyDigest()).toEqual({ ok: true });
   });
 

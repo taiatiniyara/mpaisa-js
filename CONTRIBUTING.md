@@ -1,5 +1,9 @@
 # Contributing to mpaisa-js
 
+## Filing issues
+
+Use the [issue templates](https://github.com/taiatiniyara/mpaisa-js/issues/new/choose) for bug reports, feature requests, and questions. For security vulnerabilities, see [SECURITY.md](SECURITY.md).
+
 ## Development setup
 
 ```bash

@@ -19,9 +19,10 @@ export type DigestVerification =
 
 export class Session {
   readonly requestID: string;
-  readonly amount: string;
-  readonly merchantTid: string;
-  readonly authDigestV2: string;
+
+  private readonly amount: string;
+  private readonly merchantTid: string;
+  private readonly authDigestV2: string;
 
   private readonly itemDetail: string;
   private readonly responseCode: string;

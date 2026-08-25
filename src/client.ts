@@ -76,25 +76,6 @@ interface StatusResponse {
 
 const POLL_MAX_INTERVAL_MS = 30_000;
 
-function toRecord(
-  body: StatusResponse,
-  fallbacks: { tID: string; rID: string },
-): TransactionRecord {
-  const rCode = parseRCode(body);
-  let status: TransactionStatus = "unknown";
-  if (SUCCESS_CODES.has(rCode)) status = "success";
-  else if (CANCELLED_CODES.has(rCode)) status = "cancelled";
-  else if (PENDING_CODES.has(rCode)) status = "pending";
-  return {
-    status,
-    tID: body.tID ?? fallbacks.tID,
-    rID: body.rID ?? fallbacks.rID,
-    amount: body.amt ?? body.amount,
-    phone: body.phone,
-    completedate: body.completedate,
-  };
-}
-
 export class Mpaisa {
   readonly clientId: string;
   private readonly clientSecret: string;
@@ -122,43 +103,13 @@ export class Mpaisa {
   }
 
   async handshake(input: HandshakeInput): Promise<Session> {
-    // Validation runs before any network call so merchants never create
-    // orphan server-side sessions with invalid data.
-    if (!AMOUNT_PATTERN.test(input.amount)) {
-      throw new ValidationError(
-        `amount must be a decimal string matching ${AMOUNT_PATTERN.source}`,
-        "amount",
-        AMOUNT_PATTERN.source,
-      );
-    }
-    if (input.itemDetail.length > MAX_IDET_LENGTH) {
-      throw new ValidationError(
-        `itemDetail must be at most ${MAX_IDET_LENGTH} characters`,
-        "itemDetail",
-        `length <= ${MAX_IDET_LENGTH}`,
-      );
-    }
-    if (input.merchantTid.length > MAX_TID_LENGTH) {
-      throw new ValidationError(
-        `merchantTid must be at most ${MAX_TID_LENGTH} characters`,
-        "merchantTid",
-        `length <= ${MAX_TID_LENGTH}`,
-      );
-    }
-
+    this.validateHandshakeInput(input);
     const token = await this.authManager.getToken();
-
-    const params = new URLSearchParams({
-      url: input.returnUrl,
-      tID: input.merchantTid,
-      amt: input.amount,
-      cID: this.clientId,
-      iDet: input.itemDetail,
-    });
+    const url = this.buildHandshakeUrl(input, token);
 
     // Handshake creates a server-side session: never retried automatically.
     const result = await request(this.fetchFn, {
-      url: `${this.baseUrl}/live/API/?${params.toString()}`,
+      url,
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
       timeoutMs: this.timeout,
@@ -190,30 +141,7 @@ export class Mpaisa {
     redirect: string | URLSearchParams,
     order: RedirectOrder,
   ): Promise<TransactionRecord> {
-    const parsed = parseRedirect(redirect);
-    const tokenOk = await verifyTokenV2({
-      merchantTid: parsed.tID,
-      amount: order.amount,
-      itemDetail: order.itemDetail,
-      clientSecret: this.clientSecret,
-      responseCode: parsed.rCode,
-      tokenv2: parsed.tokenv2,
-    });
-    // A failed hash check is a security incident, not a normal flow
-    // (ADR-0002): throw rather than return a result.
-    if (!tokenOk.ok) {
-      throw new TokenMismatchError(
-        `tokenv2 verification failed for tID ${parsed.tID}`,
-      );
-    }
-    const body = (await this.requestStatus({
-      rId: parsed.rID,
-      tId: parsed.tID,
-      cId: this.clientId,
-    })) as StatusResponse;
-    // Only trust the outcome the status API reports.
-    redirectOutcome(parseRCode(body));
-    return toRecord(body, { tID: parsed.tID, rID: parsed.rID });
+    return this.confirmPipeline(redirect, order);
   }
 
   async poll(
@@ -230,7 +158,7 @@ export class Mpaisa {
       })) as StatusResponse;
       const rCode = parseRCode(body);
       if (!PENDING_CODES.has(rCode)) {
-        return toRecord(body, { tID: target.tId, rID: target.rId });
+        return this.mapToRecord(body, { tID: target.tId, rID: target.rId });
       }
       if (Date.now() + intervalMs > deadline) {
         throw new PollTimeoutError(
@@ -261,5 +189,89 @@ export class Mpaisa {
       headers: { Authorization: `Bearer ${token}` },
       timeoutMs: this.timeout,
     });
+  }
+
+  private validateHandshakeInput(input: HandshakeInput): void {
+    if (!AMOUNT_PATTERN.test(input.amount)) {
+      throw new ValidationError(
+        `amount must be a decimal string matching ${AMOUNT_PATTERN.source}`,
+        "amount",
+        AMOUNT_PATTERN.source,
+      );
+    }
+    if (input.itemDetail.length > MAX_IDET_LENGTH) {
+      throw new ValidationError(
+        `itemDetail must be at most ${MAX_IDET_LENGTH} characters`,
+        "itemDetail",
+        `length <= ${MAX_IDET_LENGTH}`,
+      );
+    }
+    if (input.merchantTid.length > MAX_TID_LENGTH) {
+      throw new ValidationError(
+        `merchantTid must be at most ${MAX_TID_LENGTH} characters`,
+        "merchantTid",
+        `length <= ${MAX_TID_LENGTH}`,
+      );
+    }
+  }
+
+  private buildHandshakeUrl(input: HandshakeInput, token: string): string {
+    const params = new URLSearchParams({
+      url: input.returnUrl,
+      tID: input.merchantTid,
+      amt: input.amount,
+      cID: this.clientId,
+      iDet: input.itemDetail,
+    });
+    return `${this.baseUrl}/live/API/?${params.toString()}`;
+  }
+
+  private mapToRecord(
+    body: StatusResponse,
+    fallbacks: { tID: string; rID: string },
+  ): TransactionRecord {
+    const rCode = parseRCode(body);
+    let status: TransactionStatus = "unknown";
+    if (SUCCESS_CODES.has(rCode)) status = "success";
+    else if (CANCELLED_CODES.has(rCode)) status = "cancelled";
+    else if (PENDING_CODES.has(rCode)) status = "pending";
+    return {
+      status,
+      tID: body.tID ?? fallbacks.tID,
+      rID: body.rID ?? fallbacks.rID,
+      amount: body.amt ?? body.amount,
+      phone: body.phone,
+      completedate: body.completedate,
+    };
+  }
+
+  private async confirmPipeline(
+    redirect: string | URLSearchParams,
+    order: RedirectOrder,
+  ): Promise<TransactionRecord> {
+    const parsed = parseRedirect(redirect);
+    const tokenOk = await verifyTokenV2({
+      merchantTid: parsed.tID,
+      amount: order.amount,
+      itemDetail: order.itemDetail,
+      clientSecret: this.clientSecret,
+      responseCode: parsed.rCode,
+      tokenv2: parsed.tokenv2,
+    });
+    // A failed hash check is a security incident, not a normal flow
+    // (ADR-0002): throw rather than return a result.
+    if (!tokenOk.ok) {
+      throw new TokenMismatchError(
+        `tokenv2 verification failed for tID ${parsed.tID}`,
+      );
+    }
+    const body = (await this.requestStatus({
+      rId: parsed.rID,
+      tId: parsed.tID,
+      cId: this.clientId,
+    })) as StatusResponse;
+    // Only trust the outcome the status API reports.
+    redirectOutcome(parseRCode(body));
+    return this.mapToRecord(body, { tID: parsed.tID, rID: parsed.rID });
   }
 }

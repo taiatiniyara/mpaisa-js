@@ -15,6 +15,23 @@ interface CachedToken {
   expiresAt: number;
 }
 
+class InMemoryTokenCache implements TokenCache {
+  private store: CachedToken | null = null;
+
+  async get(_key: string): Promise<string | null> {
+    if (!this.store) return null;
+    return JSON.stringify(this.store);
+  }
+
+  async set(_key: string, value: string, _ttlMs: number): Promise<void> {
+    try {
+      this.store = JSON.parse(value) as CachedToken;
+    } catch {
+      this.store = null;
+    }
+  }
+}
+
 export interface AuthConfig {
   baseUrl: string;
   clientId: string;
@@ -29,10 +46,9 @@ export class AuthManager {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly timeoutMs?: number;
-  private readonly tokenCache?: TokenCache;
+  private readonly tokenCache: TokenCache;
   private readonly fetchFn: FetchLike;
 
-  private memoryToken: CachedToken | null = null;
   private inflight: Promise<string> | null = null;
 
   constructor(config: AuthConfig) {
@@ -40,7 +56,7 @@ export class AuthManager {
     this.clientId = config.clientId;
     this.clientSecret = config.clientSecret;
     this.timeoutMs = config.timeoutMs;
-    this.tokenCache = config.tokenCache;
+    this.tokenCache = config.tokenCache ?? new InMemoryTokenCache();
     this.fetchFn = config.fetchFn ?? defaultFetch;
     registerSecrets(this.clientId, this.clientSecret);
   }
@@ -66,11 +82,7 @@ export class AuthManager {
   }
 
   private async readCached(): Promise<CachedToken | null> {
-    const raw = this.tokenCache
-      ? await this.tokenCache.get(TOKEN_CACHE_PREFIX + this.clientId)
-      : this.memoryToken
-        ? JSON.stringify(this.memoryToken)
-        : null;
+    const raw = await this.tokenCache.get(TOKEN_CACHE_PREFIX + this.clientId);
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw) as Partial<CachedToken>;
@@ -119,15 +131,11 @@ export class AuthManager {
     // redacts them (ADR-0004).
     registerSecrets(payload.token);
     const serialized = JSON.stringify(entry);
-    if (this.tokenCache) {
-      await this.tokenCache.set(
-        TOKEN_CACHE_PREFIX + this.clientId,
-        serialized,
-        Math.max(expiresAt - Date.now(), 0),
-      );
-    } else {
-      this.memoryToken = entry;
-    }
+    await this.tokenCache.set(
+      TOKEN_CACHE_PREFIX + this.clientId,
+      serialized,
+      Math.max(expiresAt - Date.now(), 0),
+    );
     return entry.token;
   }
 }
