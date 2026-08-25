@@ -32,7 +32,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "ci": "npm run lint && npm run typecheck && npm run test"
+    "ci": "npm run lint && npm run typecheck && npm run test",
+    "release": "npm run build && npm publish --provenance"
   },
   "keywords": [
     "mpaisa",
