@@ -215,7 +215,7 @@ export class Mpaisa {
     }
   }
 
-  private buildHandshakeUrl(input: HandshakeInput, token: string): string {
+  private buildHandshakeUrl(input: HandshakeInput, _token: string): string {
     const params = new URLSearchParams({
       url: input.returnUrl,
       tID: input.merchantTid,
