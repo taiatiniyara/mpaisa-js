@@ -1,0 +1,3 @@
+# Canonical digest formula: §4.3.1, secret = client secret
+
+The IPG guide contradicts itself on the tokenv2/authdigestv2 formula: §4.3.1–4.3.2 use `SHA256(tID + amount + iDet + "merchantsecret" + rCode)` while §4.3.3–4.3.4 insert `requestid` before the secret. We implement §4.3.1 as canonical, with `"merchantsecret"` defaulting to the merchant's client secret (the doc never defines it). Release of the handshake milestone is gated on an empirical staging check that our computed digest matches a real gateway response; if staging proves otherwise, the formula lives in one pure function so switching is trivial. We deliberately ship no `digestVersion` config flag: premature configurability around a security primitive invites footguns.

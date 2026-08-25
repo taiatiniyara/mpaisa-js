@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>mpaisa-js — TypeScript SDK for the M-PAiSA Payments Gateway</title>
+<meta name="description" content="Accept M-PAiSA mobile money payments in Node.js, Bun, Deno, and edge runtimes. Handshake, redirect verification, and transaction status in a zero-dependency TypeScript SDK." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>" />
+<style>
+  :root {
+    --bg: #0b0f14;
+    --surface: #111820;
+    --border: #1e2a38;
+    --text: #e6edf3;
+    --muted: #8b98a5;
+    --accent: #e60000;
+    --accent-hover: #ff1a1a;
+    --green: #2ea043;
+    --code-bg: #0d1117;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1080px; margin: 0 auto; padding: 20px 24px;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; }
+  .logo .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 12px var(--accent);
+  }
+  nav .links a {
+    color: var(--muted); text-decoration: none; font-size: 14px; margin-left: 24px;
+  }
+  nav .links a:hover { color: var(--text); }
+
+  header {
+    max-width: 1080px; margin: 0 auto; padding: 88px 24px 64px;
+    display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
+  }
+  @media (max-width: 860px) { header { grid-template-columns: 1fr; padding-top: 56px; } }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--muted); font-size: 13px;
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 24px;
+  }
+  .badge .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; } 50% { opacity: .35; }
+  }
+  h1 {
+    font-size: clamp(36px, 6vw, 56px); line-height: 1.08;
+    letter-spacing: -0.02em; font-weight: 800; margin-bottom: 20px;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+  .sub { color: var(--muted); font-size: 18px; max-width: 46ch; margin-bottom: 32px; }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px; border-radius: 10px; font-size: 15px; font-weight: 600;
+    text-decoration: none; transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .btn-ghost { border: 1px solid var(--border); color: var(--text); background: var(--surface); }
+  .btn-ghost:hover { border-color: var(--muted); }
+
+  .install {
+    margin-top: 28px; display: flex; align-items: center; gap: 12px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; width: fit-content;
+    cursor: pointer;
+  }
+  .install code { font-family: var(--mono); font-size: 14px; color: #79c0ff; }
+  .install .hint { color: var(--muted); font-size: 12px; }
+
+  .code-window {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  }
+  .code-window .bar {
+    display: flex; gap: 6px; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .code-window .bar span { width: 11px; height: 11px; border-radius: 50%; background: #2d3b4c; }
+  .code-window .bar span:first-child { background: #f66; }
+  .code-window .bar span:nth-child(2) { background: #fc2; }
+  .code-window .bar span:nth-child(3) { background: #2c4; }
+  pre {
+    font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    padding: 20px; overflow-x: auto;
+  }
+  .kw { color: #ff7b72; } .str { color: #a5d6ff; } .fn { color: #d2a8ff; }
+  .cm { color: #8b949e; } .var { color: #79c0ff; } .num { color: #f2cc60; }
+
+  section { max-width: 1080px; margin: 0 auto; padding: 40px 24px; }
+  h2 { font-size: 28px; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .section-sub { color: var(--muted); margin-bottom: 32px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .card h3 { font-size: 16px; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 14px; }
+  .card .icon { font-size: 22px; margin-bottom: 12px; display: block; }
+
+  .flow { counter-reset: step; }
+  .step {
+    display: flex; gap: 20px; padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 15px;
+  }
+  .step b { display: block; margin-bottom: 2px; }
+  .step p { color: var(--muted); font-size: 14px; }
+
+  footer {
+    border-top: 1px solid var(--border); margin-top: 40px;
+  }
+  footer .inner {
+    max-width: 1080px; margin: 0 auto; padding: 32px 24px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    color: var(--muted); font-size: 13px;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  .warn {
+    background: var(--surface); border-left: 3px solid var(--accent);
+    padding: 14px 18px; border-radius: 0 10px 10px 0;
+    color: var(--muted); font-size: 14px; max-width: 72ch;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#flow">How it works</a>
+    <a href="https://github.com/taiatiniyara/mpaisa-js">GitHub</a>
+  </div>
+</nav>
+
+<header>
+  <div>
+    <div class="badge"><span class="pulse"></span> Built for the M-PAiSA IPG API v1.3</div>
+    <h1>Accept <em>M-PAiSA</em> payments in TypeScript.</h1>
+    <p class="sub">
+      The official-community SDK for Vodafone Fiji's M-PAiSA Payments Gateway.
+      Handshake, tamper-proof redirect verification, and transaction status —
+      in one zero-dependency package.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/taiatiniyara/mpaisa-js">Get started</a>
+      <a class="btn btn-ghost" href="#flow">See the flow</a>
+    </div>
+    <div class="install" onclick="navigator.clipboard.writeText('npm install mpaisa-js'); this.querySelector('.hint').textContent='copied ✓'">
+      <code>npm install mpaisa-js</code>
+      <span class="hint">click to copy</span>
+    </div>
+  </div>
+  <div class="code-window">
+    <div class="bar"><span></span><span></span><span></span></div>
+<pre><code><span class="kw">import</span> { Mpaisa } <span class="kw">from</span> <span class="str">"mpaisa-js"</span>;
+
+<span class="kw">const</span> <span class="var">mpaisa</span> = <span class="kw">new</span> <span class="fn">Mpaisa</span>({
+  clientId: process.env.<span class="num">MPAISA_CLIENT_ID</span>!,
+  clientSecret: process.env.<span class="num">MPAISA_CLIENT_SECRET</span>!,
+  environment: <span class="str">"staging"</span>,
+});
+
+<span class="cm">// 1. Open a session</span>
+<span class="kw">const</span> <span class="var">session</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">handshake</span>({
+  merchantTid: <span class="str">"123456543VF"</span>,
+  amount: <span class="str">"10.50"</span>,
+  itemDetail: <span class="str">"iPhone 17"</span>,
+  returnUrl: <span class="str">"https://example.com/callback"</span>,
+});
+<span class="var">session</span>.<span class="fn">verifyDigest</span>();
+
+<span class="cm">// 2. Redirect the customer</span>
+<span class="fn">redirect</span>(<span class="var">session</span>.checkoutUrl);
+
+<span class="cm">// 3. On return — verify, then confirm</span>
+<span class="kw">const</span> <span class="var">txn</span> = <span class="kw">await</span> <span class="var">mpaisa</span>.<span class="fn">confirmRedirect</span>(params);
+<span class="kw">if</span> (<span class="var">txn</span>.status === <span class="str">"SUCCESS"</span>) <span class="fn">fulfilOrder</span>();</code></pre>
+  </div>
+</header>
+
+<section id="features">
+  <h2>Built safe by default</h2>
+  <p class="section-sub">Payments code fails quietly unless the SDK makes the safe path the easy path.</p>
+  <div class="grid">
+    <div class="card"><span class="icon">🔐</span><h3>Tamper-proof redirects</h3><p>tokenv2 digests are recomputed locally with timing-safe comparison. Verification failures are impossible to ignore — the type system forces you to handle them.</p></div>
+    <div class="card"><span class="icon">🧾</span><h3>Ground-truth confirmation</h3><p>confirmRedirect() verifies the hash <em>and</em> re-checks authoritative status via the gateway before you fulfil an order. Never trust the redirect alone.</p></div>
+    <div class="card"><span class="icon">🪶</span><h3>Zero dependencies</h3><p>Pure fetch + WebCrypto. Runs on Node 18+, Bun, Deno, and Cloudflare Workers without polyfills or audit surface.</p></div>
+    <div class="card"><span class="icon">🔄</span><h3>Token lifecycle handled</h3><p>Bearer tokens are fetched lazily, cached, and refreshed ahead of expiry. Plug in an external cache for serverless cold starts.</p></div>
+    <div class="card"><span class="icon">💸</span><h3>Exact money strings</h3><p>Amounts are decimal strings reused byte-for-byte across URLs and digests — no float formatting drift breaking hash verification.</p></div>
+    <div class="card"><span class="icon">🧭</span><h3>Typed end to end</h3><p>Every response code (100–155) mapped to typed errors. Dual ESM/CJS output with strict TypeScript declarations.</p></div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2>The payment flow</h2>
+  <p class="section-sub">Four calls between your server, the customer's browser, and the gateway.</p>
+  <div class="flow">
+    <div class="step"><div><b>Handshake</b><p>Your server exchanges credentials for a bearer token, Request ID, and auth digest — verified locally before anything moves.</p></div></div>
+    <div class="step"><div><b>Redirect</b><p>The customer is sent to the gateway-hosted Payments Page and pays with their M-PAiSA wallet via SMS/OTP two-factor auth.</p></div></div>
+    <div class="step"><div><b>Redirect back</b><p>The gateway returns the customer with rCode, transaction details, and a tokenv2 hash. mpaisa-js recomputes and compares it before you act.</p></div></div>
+    <div class="step"><div><b>Confirm &amp; fulfil</b><p>confirmRedirect() pulls authoritative status from the requeststatus API. Only then do you fulfil the order.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="warn">
+    <strong>Integration note:</strong> always verify tokenv2 and confirm status server-side before
+    fulfilling orders. Unverified redirects are vulnerable to tampering — Vodafone accepts no
+    liability for unverified transactions. mpaisa-js makes skipping these checks hard on purpose.
+  </div>
+</section>
+
+<footer>
+  <div class="inner">
+    <span>mpaisa-js — community SDK for the M-PAiSA Payments Gateway</span>
+    <span>
+      <a href="https://github.com/taiatiniyara/mpaisa-js">Source</a> ·
+      <a href="https://github.com/taiatiniyara/mpaisa-js/issues">Issues</a> ·
+      <a href="https://www.vodafone.com.fj/m-paisa">M-PAiSA</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
