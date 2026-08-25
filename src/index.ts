@@ -38,17 +38,26 @@ export {
   ValidationError,
   PollTimeoutError,
   RateLimitError,
-  ResponseCodeError,
   registerSecrets,
   clearSecrets,
   type MpaisaErrorDetails,
   type GatewayErrorDetails,
 } from "./errors.js";
 
-export { ResponseCode, responseCodeLabel, isTerminalCode } from "./codes.js";
+export {
+  ResponseCode,
+  responseCodeLabel,
+  isTerminalCode,
+  SUCCESS_CODES,
+  CANCELLED_CODES,
+  PENDING_CODES,
+  parseRCode,
+} from "./codes.js";
 export type { ResponseCodeValue } from "./codes.js";
 
 export { request, type RequestOptions, type FetchLike } from "./http.js";
 
 export { AuthManager, TOKEN_CACHE_PREFIX } from "./auth.js";
 export type { AuthConfig, TokenCache } from "./auth.js";
+
+export { sleep, defaultFetch } from "./util.js";

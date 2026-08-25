@@ -1,5 +1,3 @@
-import { responseCodeLabel } from "./codes.js";
-
 const REDACTED = "[REDACTED]";
 const MIN_SECRET_LENGTH = 8;
 
@@ -138,21 +136,5 @@ export class RateLimitError extends MpaisaError {
   constructor(message: string, retryAfterSeconds: number | null = null) {
     super("RATE_LIMITED", message, { retryAfterSeconds });
     this.retryAfterSeconds = retryAfterSeconds;
-  }
-}
-
-export class ResponseCodeError extends MpaisaError {
-  override name = "ResponseCodeError";
-  readonly rCode: number;
-  readonly label: string;
-
-  constructor(rCode: number) {
-    const label = responseCodeLabel(rCode);
-    super("RESPONSE_CODE_ERROR", `Gateway returned ${rCode} (${label})`, {
-      rCode,
-      label,
-    });
-    this.rCode = rCode;
-    this.label = label;
   }
 }

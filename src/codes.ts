@@ -46,3 +46,17 @@ export function responseCodeLabel(code: number): string {
 export function isTerminalCode(code: number): boolean {
   return code !== ResponseCode.PENDING;
 }
+
+export const SUCCESS_CODES: Set<number> = new Set([
+  ResponseCode.SUCCESS,
+  ResponseCode.SUCCESS_CONFIRMED,
+]);
+export const CANCELLED_CODES: Set<number> = new Set([ResponseCode.CANCELLED]);
+export const PENDING_CODES: Set<number> = new Set([ResponseCode.PENDING]);
+
+export function parseRCode(body: {
+  response?: number | string;
+  rCode?: number | string;
+}): number {
+  return Number.parseInt(String(body.response ?? body.rCode ?? ""), 10);
+}

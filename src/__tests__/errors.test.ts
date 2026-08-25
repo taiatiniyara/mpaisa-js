@@ -5,7 +5,6 @@ import {
   NetworkError,
   PollTimeoutError,
   RateLimitError,
-  ResponseCodeError,
   TokenMismatchError,
   ValidationError,
   clearSecrets,
@@ -48,16 +47,12 @@ describe("error hierarchy", () => {
     ["TokenMismatchError", () => new TokenMismatchError("tokenv2 mismatch")],
     [
       "ValidationError",
-      () => new ValidationError("bad amount", "amount", "must match /^\\d{1,7}(\\.\\d{1,2})?$/"),
+      () => new ValidationError("bad amount", "amount", "must match /^\\d{1,9}(\\.\\d{1,2})?$/"),
     ],
     ["PollTimeoutError", () => new PollTimeoutError("deadline exceeded", 30_000)],
     [
       "RateLimitError",
       () => new RateLimitError("slow down", 2),
-    ],
-    [
-      "ResponseCodeError",
-      () => new ResponseCodeError(102),
     ],
   ];
 
@@ -83,15 +78,6 @@ describe("GatewayError", () => {
     expect(err.rCode).toBe(155);
     expect(err.response).toEqual({ message: "too many attempts" });
     expect(err.requestId).toBe("rID-1");
-  });
-});
-
-describe("ResponseCodeError", () => {
-  it("carries the code and its human-readable label", () => {
-    const err = new ResponseCodeError(112);
-    expect(err.rCode).toBe(112);
-    expect(err.label).toBe(responseCodeLabel(112));
-    expect(err.label).toMatch(/cancel/i);
   });
 });
 

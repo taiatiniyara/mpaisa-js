@@ -28,11 +28,7 @@ export async function computeAuthDigest(input: DigestInput): Promise<string> {
 }
 
 export function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    throw new Error(
-      `constantTimeEqual requires equal-length strings (got ${a.length} and ${b.length})`,
-    );
-  }
+  if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) {
     diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
@@ -46,9 +42,5 @@ export function hashesEqual(
 ): boolean {
   if (!provided) return false;
   const received = provided.toUpperCase();
-  // constantTimeEqual throws on length differences (defense in depth);
-  // a different-length digest is simply a failed verification here.
-  return (
-    received.length === computed.length && constantTimeEqual(computed, received)
-  );
+  return received.length === computed.length && constantTimeEqual(computed, received);
 }

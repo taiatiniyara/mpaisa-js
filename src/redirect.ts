@@ -1,6 +1,6 @@
 import { computeAuthDigest, hashesEqual } from "./digest.js";
 import { GatewayError } from "./errors.js";
-import { ResponseCode } from "./codes.js";
+import { SUCCESS_CODES, CANCELLED_CODES, PENDING_CODES } from "./codes.js";
 
 export interface ParsedRedirect {
   rCode: number;
@@ -52,13 +52,6 @@ export async function verifyTokenV2(input: TokenV2Input): Promise<TokenV2Result>
   });
   return { ok: hashesEqual(computed, input.tokenv2) };
 }
-
-const SUCCESS_CODES: Set<number> = new Set([
-  ResponseCode.SUCCESS,
-  ResponseCode.SUCCESS_CONFIRMED,
-]);
-const CANCELLED_CODES: Set<number> = new Set([ResponseCode.CANCELLED]);
-const PENDING_CODES: Set<number> = new Set([ResponseCode.PENDING]);
 
 export type RedirectOutcome =
   | { status: "success"; tID: string; rID: string; phone?: string }

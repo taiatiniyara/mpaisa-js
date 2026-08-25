@@ -145,7 +145,7 @@ describe("Mpaisa.handshake()", () => {
     const client = makeClient(fetchMock as unknown as typeof fetch);
     await client.handshake({
       merchantTid: "z".repeat(200),
-      amount: "1234567.89",
+      amount: "123456789.89",
       itemDetail: "w".repeat(200),
       returnUrl: "https://shop.test/callback",
     });

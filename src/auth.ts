@@ -1,8 +1,6 @@
 import { request, type FetchLike } from "./http.js";
 import { GatewayError, registerSecrets } from "./errors.js";
-
-const defaultFetch: FetchLike = (input, init) =>
-  fetch(input as Parameters<FetchLike>[0], init);
+import { defaultFetch } from "./util.js";
 
 const REFRESH_MARGIN_MS = 60_000;
 export const TOKEN_CACHE_PREFIX = "mpaisa:token:";

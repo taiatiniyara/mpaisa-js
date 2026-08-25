@@ -2,20 +2,14 @@ import { request, type FetchLike } from "./http.js";
 import { AuthManager, type TokenCache } from "./auth.js";
 import { Session } from "./session.js";
 import { parseRedirect, redirectOutcome, verifyTokenV2 } from "./redirect.js";
-import { ResponseCode } from "./codes.js";
+import { SUCCESS_CODES, CANCELLED_CODES, PENDING_CODES, parseRCode } from "./codes.js";
 import {
   GatewayError,
   PollTimeoutError,
   TokenMismatchError,
   ValidationError,
 } from "./errors.js";
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-const defaultFetch: FetchLike = (input, init) =>
-  fetch(input as Parameters<FetchLike>[0], init);
+import { sleep, defaultFetch } from "./util.js";
 
 export const STAGING_BASE_URL = "https://payments-staging.m-paisa.com";
 // Provisional: the live host is not pinned by captured fixtures yet.
@@ -23,7 +17,7 @@ export const LIVE_BASE_URL = "https://payments.m-paisa.com";
 
 export type Environment = "staging" | "live";
 
-const AMOUNT_PATTERN = /^\d{1,7}(\.\d{1,2})?$/;
+const AMOUNT_PATTERN = /^\d{1,9}(\.\d{1,2})?$/;
 const MAX_IDET_LENGTH = 200;
 const MAX_TID_LENGTH = 200;
 
@@ -80,23 +74,17 @@ interface StatusResponse {
   [key: string]: unknown;
 }
 
-const PENDING_CODE = ResponseCode.PENDING;
 const POLL_MAX_INTERVAL_MS = 30_000;
-const SUCCESS_STATUSES: Set<number> = new Set([
-  ResponseCode.SUCCESS,
-  ResponseCode.SUCCESS_CONFIRMED,
-]);
-const CANCELLED_STATUS: Set<number> = new Set([ResponseCode.CANCELLED]);
 
 function toRecord(
   body: StatusResponse,
   fallbacks: { tID: string; rID: string },
 ): TransactionRecord {
-  const rCode = Number.parseInt(String(body.response ?? body.rCode ?? ""), 10);
+  const rCode = parseRCode(body);
   let status: TransactionStatus = "unknown";
-  if (SUCCESS_STATUSES.has(rCode)) status = "success";
-  else if (CANCELLED_STATUS.has(rCode)) status = "cancelled";
-  else if (rCode === PENDING_CODE) status = "pending";
+  if (SUCCESS_CODES.has(rCode)) status = "success";
+  else if (CANCELLED_CODES.has(rCode)) status = "cancelled";
+  else if (PENDING_CODES.has(rCode)) status = "pending";
   return {
     status,
     tID: body.tID ?? fallbacks.tID,
@@ -224,9 +212,7 @@ export class Mpaisa {
       cId: this.clientId,
     })) as StatusResponse;
     // Only trust the outcome the status API reports.
-    redirectOutcome(
-      Number.parseInt(String(body.response ?? body.rCode ?? ""), 10),
-    );
+    redirectOutcome(parseRCode(body));
     return toRecord(body, { tID: parsed.tID, rID: parsed.rID });
   }
 
@@ -242,11 +228,8 @@ export class Mpaisa {
         tId: target.tId,
         cId: target.cId,
       })) as StatusResponse;
-      const rCode = Number.parseInt(
-        String(body.response ?? body.rCode ?? ""),
-        10,
-      );
-      if (rCode !== PENDING_CODE) {
+      const rCode = parseRCode(body);
+      if (!PENDING_CODES.has(rCode)) {
         return toRecord(body, { tID: target.tId, rID: target.rId });
       }
       if (Date.now() + intervalMs > deadline) {

@@ -64,9 +64,9 @@ describe("constantTimeEqual", () => {
     expect(constantTimeEqual(SHA256_EMPTY, SHA256_ABC)).toBe(false);
   });
 
-  it("throws when lengths differ", () => {
-    expect(() => constantTimeEqual("abc", "ab")).toThrow();
-    expect(() => constantTimeEqual("", "a")).toThrow();
+  it("returns false when lengths differ", () => {
+    expect(constantTimeEqual("abc", "ab")).toBe(false);
+    expect(constantTimeEqual("", "a")).toBe(false);
   });
 
   it("is case-sensitive", () => {

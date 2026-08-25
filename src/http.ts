@@ -4,6 +4,7 @@ import {
   NetworkError,
   RateLimitError,
 } from "./errors.js";
+import { sleep } from "./util.js";
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 const RETRY_BACKOFF_BASE_MS = 100;
@@ -32,10 +33,6 @@ async function safeJson(response: Response): Promise<unknown> {
   } catch {
     return undefined;
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export type FetchLike = typeof fetch;
