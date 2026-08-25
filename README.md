@@ -20,7 +20,7 @@ yarn add mpaisa-js
 pnpm add mpaisa-js
 ```
 
-Requires Node.js >= 18.
+Requires Node.js >= 20.
 
 ## Quickstart
 
