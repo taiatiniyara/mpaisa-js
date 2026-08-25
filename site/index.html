@@ -214,6 +214,20 @@
   .install .hint { color: var(--muted); font-size: 12px; transition: color var(--transition); }
   .install.copied .hint { color: var(--green); }
 
+  /* Version badge */
+  .version-line {
+    margin-top: 14px; display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-family: var(--mono); color: var(--muted);
+    text-decoration: none;
+  }
+  .version-line .ver {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 2px 10px; border-radius: 999px;
+    transition: border-color var(--transition), color var(--transition);
+  }
+  .version-line:hover .ver { border-color: var(--accent); color: var(--text); }
+  .version-line.hidden { display: none; }
+
   /* Code windows */
   .code-window {
     background: var(--code-bg); border: 1px solid var(--border);
@@ -484,6 +498,9 @@
       <code>npm install mpaisa-js</code>
       <span class="hint">click to copy</span>
     </div>
+    <a class="version-line hidden" id="version-line" href="https://www.npmjs.com/package/mpaisa-js" target="_blank" rel="noopener">
+      latest <span class="ver" id="pkg-version">v—</span>
+    </a>
   </div>
   <div class="code-window">
     <div class="bar">
@@ -787,6 +804,17 @@ function closeMobile() {
   document.querySelector('.hamburger').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+// Fetch published version from npm registry
+fetch('https://registry.npmjs.org/mpaisa-js/latest')
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data && data.version) {
+      document.getElementById('pkg-version').textContent = 'v' + data.version;
+      document.getElementById('version-line').classList.remove('hidden');
+    }
+  })
+  .catch(function() { /* stay hidden */ });
 
 // Scroll reveal
 var observer = new IntersectionObserver(function(entries) {
