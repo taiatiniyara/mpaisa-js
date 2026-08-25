@@ -30,9 +30,20 @@ jobs:
       - name: Lint, typecheck, test
         run: npm run ci
 
-      - name: Publish (or open Version Packages PR)
+      - name: Check for pending changesets
+        id: check
+        run: |
+          if find .changeset -name '*.md' ! -name 'README.md' | grep -q .; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Version and publish
+        if: steps.check.outputs.has_changesets == 'true'
         uses: changesets/action@v1
         with:
+          version: npx changeset version
           publish: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
