@@ -4,6 +4,17 @@ TypeScript SDK for the M-PAiSA Payments Gateway (Vodafone Fiji): initiate wallet
 
 ## Language
 
+Full glossary: [`UBIQUITOUS_LANGUAGE.md`](UBIQUITOUS_LANGUAGE.md).
+
+**Integrator**:
+A developer who builds against mpaisa-js on behalf of a business merchant. "Client" never refers to a person. _Avoid_: client, client dev, partner
+
+**Merchant**:
+The business that owns the M-PAiSA wallet account and receives the funds. _Avoid_: business merchant, vendor
+
+**Customer**:
+The person who pays via the M-PAiSA wallet on the Payments Page. _Avoid_: payer, user, end-user
+
 **Handshake**:
 The first gateway call that exchanges a bearer token for a Request ID and Auth Digest, establishing the transaction session. _Avoid_: session init, auth call
 
@@ -28,6 +39,9 @@ The gateway's numeric status for a transaction attempt (100 PENDING through 155 
 **Client ID (`clientId`)**:
 The Vodafone-issued credential that serves double duty: identity in `generateAuth` authentication and business-account reference (`cID`) on transaction calls. One value, two roles. _Avoid_: conflating with a separate business ID
 
+**Client Secret (`clientSecret`)**:
+The Vodafone-issued secret used by the server-side SDK for authenticated gateway calls; never present in the Client Package or any browser context. _Avoid_: API key, password
+
 **Session**:
 The SDK object returned by the Handshake, carrying the Request ID, exact Amount bytes, checkout URL, and digest verification behavior. Lives from Handshake until redirect outcome. _Avoid_: token, context
 
@@ -38,4 +52,4 @@ Verifying the Redirect Token and then fetching authoritative status via the stat
 The gateway-hosted web page where the customer enters M-PAiSA wallet credentials and completes 2FA. The merchant redirects the customer there; it is never embedded or proxied.
 
 **Client Package**:
-The browser-safe subset of mpaisa-js, imported from `"mpaisa-js/client"`. Exports `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome` — all pure functions with no secrets. Runs in React, React Native, or any browser context. The merchant frontend uses it for preliminary redirect interpretation; authoritative Confirmation remains server-side. _Avoid_: client SDK, frontend SDK
+The browser-safe subset of mpaisa-js, imported from `"mpaisa-js/client"`. Exports `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome` — all pure functions with no secrets. Runs in React, React Native, or any browser context. The Integrator's frontend uses it for preliminary redirect interpretation; authoritative Confirmation remains server-side. "Client" survives only in this fixed name and **Client ID** — never for a person (that is the Integrator). _Avoid_: client SDK, frontend SDK

@@ -486,7 +486,7 @@
     <a class="logo" href="#"><span class="dot"></span>mpaisa-js</a>
     <div class="links">
       <a href="#quickstart">Quickstart</a>
-      <a href="#client">Client</a>
+      <a href="#client">Client package</a>
       <a href="#features">Features</a>
       <a href="#flow">How it works</a>
       <a href="#errors">Errors</a>
@@ -500,7 +500,7 @@
 
 <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Mobile navigation">
   <a href="#quickstart" onclick="closeMobile()">Quickstart</a>
-  <a href="#client" onclick="closeMobile()">Client</a>
+  <a href="#client" onclick="closeMobile()">Client package</a>
   <a href="#features" onclick="closeMobile()">Features</a>
   <a href="#flow" onclick="closeMobile()">How it works</a>
   <a href="#errors" onclick="closeMobile()">Errors</a>
@@ -621,7 +621,7 @@
   <div class="quickstart-grid">
     <div>
       <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;">
-        Import from <code style="color: #79c0ff;">"mpaisa-js/client"</code> for pure, secret-free functions that run anywhere a browser does. The full SDK handles the Handshake and Confirmation server-side; the client package handles redirect interpretation on the frontend.
+        You are the <b>Integrator</b> — the developer building on behalf of a merchant. "Client" in these docs never means a person: it appears only in <code style="color: #79c0ff;">clientId</code> (the Vodafone credential identifying the merchant) and the <b>Client Package</b> below. Import from <code style="color: #79c0ff;">"mpaisa-js/client"</code> for pure, secret-free functions that run anywhere a browser does. The full SDK handles the Handshake and Confirmation server-side; the Client Package handles redirect interpretation on the frontend.
       </p>
       <div class="code-window">
         <div class="bar">
@@ -655,7 +655,7 @@
       <div class="card" style="margin-bottom: 16px;">
         <span class="icon">&#x26a1;</span>
         <h3>Two-layer verification</h3>
-        <p>The client gives a preliminary status from the redirect. Your backend calls confirmRedirect() for the authoritative record before fulfilling any order.</p>
+        <p>The Client Package gives a preliminary status from the redirect. Your backend calls confirmRedirect() for the authoritative record before fulfilling any order.</p>
       </div>
       <div class="card">
         <span class="icon">&#x1f4f1;</span>

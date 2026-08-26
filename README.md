@@ -9,6 +9,23 @@ TypeScript SDK for the M-PAiSA Payments Gateway (Vodafone Fiji): initiate wallet
 
 Docs & playground: **https://taiatiniyara.github.io/mpaisa-js**
 
+## Terminology
+
+You (the developer integrating on behalf of a merchant) are an **Integrator**. "Client" in this docs never refers to a person — it appears only in two fixed names:
+
+| Term | Meaning |
+|------|---------|
+| **Integrator** | You, the developer building on behalf of a **Merchant** |
+| **Merchant** | The business that owns the M-PAiSA wallet account and receives the funds |
+| **Customer** | The person who pays via M-PAiSA on the Payments Page |
+| **Client ID (`clientId`)** | Vodafone-issued credential identifying the Merchant; also the business ref (`cID`) on transaction calls |
+| **Client Secret (`clientSecret`)** | Vodafone-issued secret; server-side only, never in browser code |
+| **Client Package** | The browser-safe subset at `"mpaisa-js/client"` — pure functions, no secrets |
+| **Request ID (`rID`)** | Gateway-assigned ID for one transaction session |
+| **Merchant TID (`tID`)** | Your own transaction identifier (never call it "transaction ID") |
+
+Full glossary: [UBIQUITOUS_LANGUAGE.md](UBIQUITOUS_LANGUAGE.md).
+
 ## Install
 
 ```bash
@@ -101,7 +118,7 @@ if (outcome.status === "success") {
 
 The client package exports only pure, secret-free functions: `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome`. It runs in any browser or React Native environment.
 
-**Important:** the client provides a preliminary status from the redirect URL. Authoritative confirmation must still happen server-side via `confirmRedirect()` — the redirect alone can be replayed, stale, or truncated. See the two-step fulfillment pattern above.
+**Important:** the Client Package provides a preliminary status from the redirect URL. Authoritative confirmation must still happen server-side via `confirmRedirect()` — the redirect alone can be replayed, stale, or truncated. See the two-step fulfillment pattern above.
 
 ### Handling the PENDING limbo
 
@@ -148,7 +165,7 @@ const mpaisa = new Mpaisa({
 
 ## Token caching for serverless
 
-The bearer token from `generateAuth` is cached in memory per client instance, which dies with every serverless invocation. Pass a `tokenCache` hook to persist it across invocations and avoid burning through the gateway's auth rate limits:
+The bearer token from `generateAuth` is cached in memory per `Mpaisa` instance, which dies with every serverless invocation. Pass a `tokenCache` hook to persist it across invocations and avoid burning through the gateway's auth rate limits:
 
 ```typescript
 import Redis from "ioredis";
