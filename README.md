@@ -98,7 +98,7 @@ app.get("/mpaisa/callback", async (req, res) => {
 
 A failed hash check throws `TokenMismatchError` — it does not return a result. Treat it as a security incident (see [ADR-0002](docs/adr)).
 
-### Client package (React / React Native)
+### Client package (any JavaScript frontend)
 
 The full SDK requires `clientSecret` and makes server calls — it cannot run in the browser. For merchant frontends, import from `"mpaisa-js/client"` instead:
 
@@ -116,7 +116,7 @@ if (outcome.status === "success") {
 }
 ```
 
-The client package exports only pure, secret-free functions: `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome`. It runs in any browser or React Native environment.
+The client package exports only pure, secret-free functions: `parseRedirect`, `ResponseCode` constants, and a lightweight `redirectOutcome`. It runs in any JavaScript environment with the standard `URL`/`URLSearchParams` globals — React, React Native, Vue, Svelte, Angular, plain JS.
 
 **Important:** the Client Package provides a preliminary status from the redirect URL. Authoritative confirmation must still happen server-side via `confirmRedirect()` — the redirect alone can be replayed, stale, or truncated. See the two-step fulfillment pattern above.
 

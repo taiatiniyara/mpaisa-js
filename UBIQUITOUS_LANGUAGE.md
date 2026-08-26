@@ -20,7 +20,7 @@
 | Term                 | Definition                                                                                    | Aliases to avoid           |
 | -------------------- | --------------------------------------------------------------------------------------------- | -------------------------- |
 | **Server SDK**       | The full `mpaisa-js` entry point; holds secrets and makes gateway calls; server-only          | Main SDK, core SDK         |
-| **Client Package**   | The browser-safe subset at `"mpaisa-js/client"`; pure functions, no secrets                   | Client SDK, frontend SDK   |
+| **Client Package**   | The browser-safe subset at `"mpaisa-js/client"`; pure functions, no secrets; runs in any JavaScript frontend | Client SDK, frontend SDK   |
 
 > Note: "Client" survives only inside fixed gateway/package names above (**Client ID**, **Client Package**). It never refers to a person — that is always the **Integrator**.
 
